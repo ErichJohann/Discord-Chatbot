@@ -39,16 +39,12 @@ def getHistory(channel):
 
 
 
-async def getResponse(input,channel):
+async def getResponse(input,channel, username):
     history = getHistory(channel)
     messages=[
                 {
                     "role": "system",
                     "content":sysPrompt
-                },
-                {
-                    "role": "user",
-                    "content":input
                 }
             ]
     
@@ -57,9 +53,9 @@ async def getResponse(input,channel):
             "role": "assistant" if msg["is_bot"] else "user",
             "content": msg["content"]
         })
-        print(msg['content'])
+        #print(msg['content'])
 
-    messages.append({"role": "user", "content": input})
+    messages.append({"role": "user", "content": f'{username}: {input}'}) 
     
     try:
         completion = groqClient.chat.completions.create(
@@ -69,7 +65,7 @@ async def getResponse(input,channel):
             temperature=1
         )
 
-        history.append({'content': input, 'is_bot': False})
+        history.append({'content': f'{username}: {input}', 'is_bot': False})
         history.append({'content': completion.choices[0].message.content, 'is_bot': True})
 
         return completion.choices[0].message.content
@@ -82,7 +78,7 @@ async def on_message(message):
     if message.author == rimuru.user:
         return
     async with message.channel.typing():
-        response = await getResponse(message.content, message.channel.id)
+        response = await getResponse(message.content, message.channel.id, message.author.display_name)
         await message.reply(response)
 
     await rimuru.process_commands(message)
