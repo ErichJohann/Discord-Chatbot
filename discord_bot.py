@@ -25,7 +25,7 @@ async def on_message(message):
     if message.author == rimuru.user:
         return
     async with message.channel.typing():
-        response = await getResponse(message.content, message.channel.id, message.author.display_name)
+        response = await getResponse(message.content, message.channel.id, message.author.display_name, message.author.id)
         await message.reply(response)
 
     await rimuru.process_commands(message)

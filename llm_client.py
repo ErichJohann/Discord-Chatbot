@@ -34,20 +34,20 @@ async def checkCommand(msg):
         completion = groqClient.chat.completions.create(
             messages=messages,
             model="llama-3.3-70b-versatile",
-            max_completion_tokens=128,
-            temperature=0.3
+            max_completion_tokens=64,
+            temperature=0.2
         )
         print(completion.choices[0].message.content)
         return completion.choices[0].message.content
     
     except Exception:
-        return "Error"
+        return "Error api groq"
 
-async def getResponse(input,channel, username):
+async def getResponse(input,channel, username, userid):
     answer = await checkCommand(input)
     codOp, args = answer.split(';', 1)
     if(codOp != "0"):
-        return scriptExc(codOp, args)
+        return scriptExc(codOp, args, str(userid))
     
     history = getHistory(channel)
 
