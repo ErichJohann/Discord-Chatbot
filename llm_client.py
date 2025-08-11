@@ -15,7 +15,7 @@ with open(r'prompts\scripts.txt', 'r', encoding='utf-8') as file:
     ScriptPrompt = file.read()
 
 history = {}
-MAX_HIST = 10
+MAX_HIST = 16
 def getHistory(channel):
     if channel not in history:
         history[channel] = deque(maxlen=MAX_HIST)
@@ -37,20 +37,16 @@ async def checkCommand(msg):
             max_completion_tokens=64,
             temperature=0.2
         )
-        print(completion.choices[0].message.content)
         return completion.choices[0].message.content
     
     except Exception:
         return "Error api groq"
 
 async def getResponse(input,channel, username, userid):
-    answer = await checkCommand(input)
-    codOp, args = answer.split(';', 1)
-    if(codOp != "0"):
-        return scriptExc(codOp, args, str(userid))
-    
-    history = getHistory(channel)
+    isCommand = await checkCommand(input)
+    op, args = isCommand.split(';', 1)
 
+    history = getHistory(channel)
     messages=[
                 {
                     "role": "system",
@@ -63,21 +59,26 @@ async def getResponse(input,channel, username, userid):
             "role": "assistant" if msg["is_bot"] else "user",
             "content": msg["content"]
         })
-        #print(msg['content'])
+
     messages.append({"role": "user", "content": f'{username}: {input}'}) 
-    
-    try:
-        completion = groqClient.chat.completions.create(
-            messages=messages,
-            model="llama-3.3-70b-versatile",
-            max_completion_tokens=128,
-            temperature=1
-        )
+
+    if(op != "0"):
+        output = scriptExc(op, args, str(userid))
+    else:
+        try:
+            completion = groqClient.chat.completions.create(
+                messages=messages,
+                model="llama-3.3-70b-versatile",
+                max_completion_tokens=128,
+                temperature=1
+            )
+            output = completion.choices[0].message.content
+        
+        except Exception:
+            return "Não consigo pensar direito, estou confuso... Acho que meu mana acabou\n Zzz..."
+
 
         history.append({'content': f'{username}: {input}', 'is_bot': False})
-        history.append({'content': completion.choices[0].message.content, 'is_bot': True})
+        history.append({'content': output, 'is_bot': True})
 
-        return completion.choices[0].message.content
-    
-    except Exception:
-        return "Não consigo pensar direito, estou confuso... Acho que meu mana acabou\n Zzz..."
+    return output
