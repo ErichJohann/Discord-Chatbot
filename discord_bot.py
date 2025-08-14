@@ -20,6 +20,7 @@ rimuru = commands.Bot(command_prefix='--', intents=intents)
 async def on_ready():
     print(f'bot on air -- {rimuru.user.name}')
 
+#Answer all messages on the channel
 @rimuru.event
 async def on_message(message):
     if message.author == rimuru.user:

@@ -14,6 +14,7 @@ with open(r'prompts\persona.txt', 'r', encoding='utf-8') as file:
 with open(r'prompts\scripts.txt', 'r', encoding='utf-8') as file:
     ScriptPrompt = file.read()
 
+#get last 16 messages from current channel
 history = {}
 MAX_HIST = 16
 def getHistory(channel):
@@ -21,6 +22,7 @@ def getHistory(channel):
         history[channel] = deque(maxlen=MAX_HIST)
     return history[channel]
 
+#looks if user wishes to execute a script
 async def checkCommand(msg):
     messages=[
         {
@@ -44,6 +46,7 @@ async def checkCommand(msg):
 
 async def getResponse(input,channel, username, userid):
     isCommand = await checkCommand(input)
+    #split operation number and arguments
     op, args = isCommand.split(';', 1)
 
     history = getHistory(channel)
@@ -62,6 +65,7 @@ async def getResponse(input,channel, username, userid):
 
     messages.append({"role": "user", "content": f'{username}: {input}'}) 
 
+    #if operation is not zero, user wishes to execute a script
     if(op != "0"):
         output = scriptExc(op, args, str(userid))
     else:
@@ -77,7 +81,7 @@ async def getResponse(input,channel, username, userid):
         except Exception:
             return "Não consigo pensar direito, estou confuso... Acho que meu mana acabou\n Zzz..."
 
-
+        #updates message history
         history.append({'content': f'{username}: {input}', 'is_bot': False})
         history.append({'content': output, 'is_bot': True})
 
